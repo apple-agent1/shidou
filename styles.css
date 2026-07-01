@@ -486,12 +486,18 @@ main {
 }
 
 .die-word {
+  width: 100%;
   font-family: var(--serif);
   font-size: clamp(13px, 1.45vw, 19px);
   font-weight: 600;
   line-height: 1.2;
+  display: -webkit-box;
+  overflow: hidden;
   text-align: center;
-  word-break: keep-all;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .die-lock {
