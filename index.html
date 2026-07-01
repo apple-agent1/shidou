@@ -10,7 +10,7 @@
     />
     <title>诗骰 · 把偶然排成一首诗</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=23" />
+    <link rel="stylesheet" href="./styles.css?v=24" />
   </head>
   <body>
     <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -252,6 +252,27 @@
 
           <div class="preview-controls">
             <fieldset>
+              <legend>作品形态</legend>
+              <div class="format-options">
+                <label>
+                  <input type="radio" name="output-type" value="poster" checked />
+                  <strong>诗歌海报</strong>
+                  <small>1080 × 1440，适合分享</small>
+                </label>
+                <label>
+                  <input type="radio" name="output-type" value="bookmark" />
+                  <strong>书签</strong>
+                  <small>600 × 1800，适合收藏和赠予</small>
+                </label>
+                <label>
+                  <input type="radio" name="output-type" value="series" />
+                  <strong>系列书签</strong>
+                  <small>一次生成三张同系列书签</small>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
               <legend>画面气氛</legend>
               <div class="theme-options">
                 <label>
@@ -277,10 +298,72 @@
               <input id="author-input" type="text" maxlength="12" placeholder="佚名" />
             </label>
 
+            <div class="bookmark-controls" id="bookmark-controls" hidden>
+              <fieldset>
+                <legend>书签模板</legend>
+                <div class="bookmark-options">
+                  <label>
+                    <input type="radio" name="bookmark-template" value="simple" checked />
+                    <strong>简笺</strong>
+                    <small>极简留白</small>
+                  </label>
+                  <label>
+                    <input type="radio" name="bookmark-template" value="gift" />
+                    <strong>赠友</strong>
+                    <small>To 与赠语</small>
+                  </label>
+                  <label>
+                    <input type="radio" name="bookmark-template" value="season" />
+                    <strong>四季</strong>
+                    <small>时令气质</small>
+                  </label>
+                  <label>
+                    <input type="radio" name="bookmark-template" value="photo" />
+                    <strong>影像</strong>
+                    <small>使用你的照片</small>
+                  </label>
+                </div>
+              </fieldset>
+
+              <div class="bookmark-fields">
+                <label>
+                  <span>标题（可选）</span>
+                  <input id="bookmark-title" type="text" maxlength="16" placeholder="给这首诗起个名字" />
+                </label>
+                <label>
+                  <span>To（可选）</span>
+                  <input id="bookmark-recipient" type="text" maxlength="16" placeholder="给谁" />
+                </label>
+                <label>
+                  <span>时令 / 日期</span>
+                  <input id="bookmark-season" type="text" maxlength="16" placeholder="今日 / 夏至 / 七月" />
+                </label>
+                <label>
+                  <span>字体气质</span>
+                  <select id="bookmark-font-mood">
+                    <option value="warm">温暖</option>
+                    <option value="harbor">港口</option>
+                    <option value="sunset">夕阳</option>
+                    <option value="melancholy">忧郁</option>
+                    <option value="clear">清冷</option>
+                    <option value="hand">手写感</option>
+                  </select>
+                </label>
+                <label class="bookmark-wide">
+                  <span>赠语 / 落款补充（可选）</span>
+                  <input id="bookmark-dedication" type="text" maxlength="28" placeholder="为你原创 / 愿你带走这一阵风" />
+                </label>
+                <label class="bookmark-wide photo-upload">
+                  <span>影像背景（仅本次生成使用）</span>
+                  <input id="bookmark-photo" type="file" accept="image/*" />
+                </label>
+              </div>
+            </div>
+
             <label class="poster-option">
               <span>
-                <strong>海报二维码</strong>
-                <small>显示在图片左下角，扫码进入诗骰继续创作</small>
+                <strong id="qr-option-title">海报二维码</strong>
+                <small id="qr-option-copy">显示在图片左下角，扫码进入诗骰继续创作</small>
               </span>
               <input id="show-qr" type="checkbox" checked />
               <i aria-hidden="true"></i>
@@ -326,10 +409,11 @@
         </div>
         <div class="image-save-layout">
           <img id="exported-image" alt="诗歌分享图片预览" />
+          <div class="exported-series" id="exported-series" hidden></div>
           <div class="image-save-actions">
             <a class="primary-button" id="download-image" download>下载 PNG</a>
             <button class="secondary-button" id="share-image" type="button" hidden>使用系统分享</button>
-            <small>图片尺寸为 1080 × 1440，适合直接分享。</small>
+            <small id="image-size-hint">图片尺寸为 1080 × 1440，适合直接分享。</small>
           </div>
         </div>
       </div>
@@ -412,6 +496,6 @@
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
 
     <script src="./vendor/qrcode.js?v=15" defer></script>
-    <script src="./app.js?v=23" defer></script>
+    <script src="./app.js?v=24" defer></script>
   </body>
 </html>

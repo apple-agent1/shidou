@@ -1,4 +1,4 @@
-const CACHE_NAME = "shidou-v23";
+const CACHE_NAME = "shidou-v24";
 const APP_SHELL = [
   "./",
   "./index.html",

@@ -80,6 +80,10 @@ const DICE_META = [
   ["change", "收束"],
 ];
 
+const OUTPUT_TYPES = ["poster", "bookmark", "series"];
+const BOOKMARK_TEMPLATES = ["simple", "gift", "season", "photo"];
+const FONT_MOODS = ["warm", "harbor", "sunset", "melancholy", "clear", "hand"];
+
 function getDice(voiceId = "original") {
   const voice = VOICES[voiceId] || VOICES.original;
   return DICE_META.map(([id, category], index) => ({
@@ -121,13 +125,24 @@ const elements = {
   cardAuthor: document.querySelector("#card-author"),
   cardDate: document.querySelector("#card-date"),
   authorInput: document.querySelector("#author-input"),
+  bookmarkControls: document.querySelector("#bookmark-controls"),
+  bookmarkTitle: document.querySelector("#bookmark-title"),
+  bookmarkRecipient: document.querySelector("#bookmark-recipient"),
+  bookmarkSeason: document.querySelector("#bookmark-season"),
+  bookmarkFontMood: document.querySelector("#bookmark-font-mood"),
+  bookmarkDedication: document.querySelector("#bookmark-dedication"),
+  bookmarkPhoto: document.querySelector("#bookmark-photo"),
+  qrOptionTitle: document.querySelector("#qr-option-title"),
+  qrOptionCopy: document.querySelector("#qr-option-copy"),
   showQr: document.querySelector("#show-qr"),
   saveButton: document.querySelector("#save-button"),
   saveStatus: document.querySelector("#save-status"),
   exportButton: document.querySelector("#export-button"),
   exportedImage: document.querySelector("#exported-image"),
+  exportedSeries: document.querySelector("#exported-series"),
   downloadImage: document.querySelector("#download-image"),
   shareImage: document.querySelector("#share-image"),
+  imageSizeHint: document.querySelector("#image-size-hint"),
   newRoundButton: document.querySelector("#new-round-button"),
   openGallery: document.querySelector("#open-gallery"),
   openGuide: document.querySelector("#open-guide"),
@@ -147,7 +162,7 @@ const elements = {
 function makeDefaultDraft() {
   const dice = getDice();
   return {
-    version: 4,
+    version: 5,
     voice: "original",
     motifIndex: null,
     hasRolled: false,
@@ -163,6 +178,13 @@ function makeDefaultDraft() {
     selectedItemId: null,
     theme: "mist",
     author: "",
+    outputType: "poster",
+    bookmarkTemplate: "simple",
+    bookmarkTitle: "",
+    bookmarkRecipient: "",
+    bookmarkSeason: defaultSeasonLabel(),
+    bookmarkFontMood: "warm",
+    bookmarkDedication: "",
     showQr: true,
     savedPoemId: null,
     updatedAt: Date.now(),
@@ -171,7 +193,7 @@ function makeDefaultDraft() {
 
 function sanitizeDraft(input) {
   const fallback = makeDefaultDraft();
-  if (!input || ![2, 3, 4].includes(input.version) || !Array.isArray(input.diceResults)) {
+  if (!input || ![2, 3, 4, 5].includes(input.version) || !Array.isArray(input.diceResults)) {
     return fallback;
   }
 
@@ -225,7 +247,7 @@ function sanitizeDraft(input) {
 
   return {
     ...fallback,
-    version: 4,
+    version: 5,
     voice,
     motifIndex: Number.isInteger(input.motifIndex) ? input.motifIndex : null,
     hasRolled: Boolean(input.hasRolled),
@@ -236,6 +258,15 @@ function sanitizeDraft(input) {
     diceOrder,
     theme: ["mist", "night", "paper"].includes(input.theme) ? input.theme : "mist",
     author: typeof input.author === "string" ? input.author.slice(0, 12) : "",
+    outputType: OUTPUT_TYPES.includes(input.outputType) ? input.outputType : "poster",
+    bookmarkTemplate: BOOKMARK_TEMPLATES.includes(input.bookmarkTemplate) ? input.bookmarkTemplate : "simple",
+    bookmarkTitle: typeof input.bookmarkTitle === "string" ? input.bookmarkTitle.slice(0, 16) : "",
+    bookmarkRecipient: typeof input.bookmarkRecipient === "string" ? input.bookmarkRecipient.slice(0, 16) : "",
+    bookmarkSeason: typeof input.bookmarkSeason === "string" && input.bookmarkSeason.trim()
+      ? input.bookmarkSeason.slice(0, 16)
+      : defaultSeasonLabel(),
+    bookmarkFontMood: FONT_MOODS.includes(input.bookmarkFontMood) ? input.bookmarkFontMood : "warm",
+    bookmarkDedication: typeof input.bookmarkDedication === "string" ? input.bookmarkDedication.slice(0, 28) : "",
     showQr: input.showQr !== false,
     savedPoemId: typeof input.savedPoemId === "string" ? input.savedPoemId : null,
     updatedAt: Number(input.updatedAt) || Date.now(),
@@ -269,6 +300,9 @@ let isRolling = false;
 let dragState = null;
 let exportedImageFile = null;
 let exportedImageUrl = null;
+let exportedImageUrls = [];
+let bookmarkPhotoDataUrl = null;
+let bookmarkPhotoName = "";
 
 function uid(prefix) {
   if (window.crypto?.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
@@ -742,6 +776,13 @@ function formatDate(timestamp = Date.now()) {
     .replaceAll("/", ".");
 }
 
+function defaultSeasonLabel(timestamp = Date.now()) {
+  const date = new Date(timestamp);
+  const month = date.getMonth() + 1;
+  const seasons = month <= 2 || month === 12 ? "冬日" : month <= 5 ? "春日" : month <= 8 ? "夏日" : "秋日";
+  return `${seasons} · ${month}月`;
+}
+
 function openPreview() {
   const usedCount = draft.items.filter((item) => item.type === "word").length;
   if (usedCount < 5) {
@@ -755,19 +796,41 @@ function openPreview() {
 
 function updatePreview() {
   elements.cardPoem.innerHTML = "";
+  if (draft.outputType !== "poster" && draft.bookmarkTitle.trim()) {
+    const title = document.createElement("p");
+    title.className = "card-poem-title";
+    title.textContent = draft.bookmarkTitle.trim();
+    elements.cardPoem.append(title);
+  }
+  if ((draft.outputType !== "poster" && draft.bookmarkTemplate === "gift") && draft.bookmarkRecipient.trim()) {
+    const recipient = document.createElement("p");
+    recipient.className = "card-poem-note";
+    recipient.textContent = `To ${draft.bookmarkRecipient.trim()}`;
+    elements.cardPoem.append(recipient);
+  }
   poemLines().forEach((line) => {
     const p = document.createElement("p");
     p.textContent = line;
     elements.cardPoem.append(p);
   });
   elements.authorInput.value = draft.author;
+  elements.bookmarkTitle.value = draft.bookmarkTitle;
+  elements.bookmarkRecipient.value = draft.bookmarkRecipient;
+  elements.bookmarkSeason.value = draft.bookmarkSeason;
+  elements.bookmarkFontMood.value = draft.bookmarkFontMood;
+  elements.bookmarkDedication.value = draft.bookmarkDedication;
   elements.showQr.checked = draft.showQr;
   elements.cardAuthor.textContent = draft.author.trim() || "佚名";
   elements.cardDate.textContent = formatDate();
   elements.cardVoice.textContent = VOICES[draft.voice]?.name || VOICES.original.name;
-  elements.poemCard.className = `poem-card theme-${draft.theme}`;
+  elements.poemCard.className = `poem-card theme-${draft.theme} preview-${draft.outputType} bookmark-${draft.bookmarkTemplate}`;
   const themeInput = document.querySelector(`input[name="theme"][value="${draft.theme}"]`);
   if (themeInput) themeInput.checked = true;
+  const outputInput = document.querySelector(`input[name="output-type"][value="${draft.outputType}"]`);
+  if (outputInput) outputInput.checked = true;
+  const templateInput = document.querySelector(`input[name="bookmark-template"][value="${draft.bookmarkTemplate}"]`);
+  if (templateInput) templateInput.checked = true;
+  updateOutputControls();
   updateSaveState();
 }
 
@@ -787,9 +850,26 @@ function poemSignature(poem = draft) {
     voice: poem.voice || poem.draft?.voice || "original",
     theme: poem.theme,
     author: (poem.author || "").trim(),
+    outputType: poem.outputType || poem.draft?.outputType || "poster",
+    bookmarkTemplate: poem.bookmarkTemplate || poem.draft?.bookmarkTemplate || "simple",
+    bookmarkTitle: poem.bookmarkTitle || poem.draft?.bookmarkTitle || "",
+    bookmarkRecipient: poem.bookmarkRecipient || poem.draft?.bookmarkRecipient || "",
+    bookmarkSeason: poem.bookmarkSeason || poem.draft?.bookmarkSeason || "",
+    bookmarkFontMood: poem.bookmarkFontMood || poem.draft?.bookmarkFontMood || "warm",
+    bookmarkDedication: poem.bookmarkDedication || poem.draft?.bookmarkDedication || "",
     showQr: poem.showQr ?? poem.draft?.showQr ?? true,
     lines: poem.lines || poemLines(poem.items),
   });
+}
+
+function updateOutputControls() {
+  const isPoster = draft.outputType === "poster";
+  elements.bookmarkControls.hidden = isPoster;
+  elements.qrOptionTitle.textContent = isPoster ? "海报二维码" : "书签二维码";
+  elements.qrOptionCopy.textContent = isPoster
+    ? "显示在图片左下角，扫码进入诗骰继续创作"
+    : "默认关闭；开启后显示在书签底部";
+  elements.exportButton.lastChild.textContent = draft.outputType === "series" ? " 生成系列书签" : " 保存图片到设备";
 }
 
 function updateSaveState() {
@@ -817,6 +897,13 @@ function savePoem() {
     createdAt,
     theme: draft.theme,
     author: draft.author.trim(),
+    outputType: draft.outputType,
+    bookmarkTemplate: draft.bookmarkTemplate,
+    bookmarkTitle: draft.bookmarkTitle,
+    bookmarkRecipient: draft.bookmarkRecipient,
+    bookmarkSeason: draft.bookmarkSeason,
+    bookmarkFontMood: draft.bookmarkFontMood,
+    bookmarkDedication: draft.bookmarkDedication,
     lines: poemLines(),
     voice: draft.voice,
     draft: structuredCloneSafe({ ...draft, savedPoemId: id }),
@@ -918,6 +1005,24 @@ function openGallery() {
 }
 
 async function exportPng() {
+  try {
+    const items =
+      draft.outputType === "series"
+        ? await Promise.all([0, 1, 2].map(async (index) => canvasToExportItem(await renderBookmarkCanvas(index), `诗骰-系列书签-${index + 1}.png`)))
+        : [
+            await canvasToExportItem(
+              draft.outputType === "bookmark" ? await renderBookmarkCanvas(0) : renderPosterCanvas(),
+              draft.outputType === "bookmark" ? "诗骰-书签.png" : `诗骰-${new Date().toISOString().slice(0, 10)}.png`
+            ),
+          ];
+    showExportedImages(items);
+    toast(draft.outputType === "series" ? "系列书签已生成，可以逐张下载。" : "图片已生成，可以下载或长按保存。");
+  } catch {
+    toast("图片生成失败，请稍后重试。");
+  }
+}
+
+function renderPosterCanvas() {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
   canvas.height = 1440;
@@ -975,28 +1080,214 @@ async function exportPng() {
   const voice = VOICES[draft.voice]?.name || VOICES.original.name;
   const voiceWidth = context.measureText(voice).width;
   context.fillText(voice, 964 - voiceWidth, 1280);
+  return canvas;
+}
 
-  try {
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-    if (!blob) throw new Error("PNG generation failed");
-    if (exportedImageUrl) URL.revokeObjectURL(exportedImageUrl);
-    const fileName = `诗骰-${new Date().toISOString().slice(0, 10)}.png`;
-    exportedImageUrl = URL.createObjectURL(blob);
-    exportedImageFile = new File([blob], fileName, { type: "image/png" });
-    elements.exportedImage.src = exportedImageUrl;
-    elements.downloadImage.href = exportedImageUrl;
-    elements.downloadImage.download = fileName;
-    const canShare =
-      typeof navigator.share === "function" &&
-      typeof navigator.canShare === "function" &&
-      navigator.canShare({ files: [exportedImageFile] });
-    elements.shareImage.hidden = !canShare;
-    elements.imageDialog.showModal();
-    document.body.style.overflow = "hidden";
-    toast("图片已生成，可以下载或长按保存。");
-  } catch {
-    toast("图片生成失败，请稍后重试。");
+async function renderBookmarkCanvas(variantIndex = 0) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 600;
+  canvas.height = 1800;
+  const context = canvas.getContext("2d");
+  const template = draft.outputType === "series"
+    ? ["simple", "gift", "season"][variantIndex]
+    : draft.bookmarkTemplate;
+  const mood = template === "photo" && bookmarkPhotoDataUrl ? photoBookmarkMood() : bookmarkMood(variantIndex);
+  await paintBookmarkBackground(context, template, mood, variantIndex);
+
+  context.textBaseline = "top";
+  context.fillStyle = mood.text;
+  context.font = '600 22px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.fillText("诗 骰", 70, 86);
+
+  context.fillStyle = mood.faint;
+  context.font = '400 18px "PingFang SC", "Microsoft YaHei", sans-serif';
+  const season = draft.bookmarkSeason.trim() || defaultSeasonLabel();
+  const seasonWidth = context.measureText(season).width;
+  context.fillText(season, 530 - seasonWidth, 88);
+
+  if (draft.bookmarkTitle.trim()) {
+    context.fillStyle = mood.accent;
+    context.font = '500 32px "Songti SC", "STSong", serif';
+    context.fillText(draft.bookmarkTitle.trim(), 70, 198);
   }
+
+  if (template === "gift" && draft.bookmarkRecipient.trim()) {
+    context.fillStyle = mood.text;
+    context.font = '500 28px "PingFang SC", "Microsoft YaHei", sans-serif';
+    context.fillText(`To ${draft.bookmarkRecipient.trim()}`, 70, 285);
+  }
+
+  const lines = poemLines();
+  const fontSize = lines.join("").length > 58 ? 34 : 38;
+  context.font = `${mood.weight} ${fontSize}px ${mood.font}`;
+  const maxWidth = 430;
+  const lineHeight = Math.round(fontSize * 1.72);
+  const wrapped = lines.flatMap((line, index) => {
+    const parts = wrapCanvasText(context, line, maxWidth);
+    return index < lines.length - 1 ? [...parts, null] : parts;
+  });
+  const stanzaGap = Math.round(fontSize * 0.58);
+  const totalHeight = wrapped.reduce((height, line) => height + (line === null ? stanzaGap : lineHeight), 0);
+  let y = Math.max(480, (canvas.height - totalHeight) / 2 - 40);
+  context.fillStyle = mood.text;
+  wrapped.forEach((line) => {
+    if (line === null) {
+      y += stanzaGap;
+      return;
+    }
+    context.fillText(line, 86, y);
+    y += lineHeight;
+  });
+
+  context.font = '400 20px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.fillStyle = mood.faint;
+  const dedication = draft.bookmarkDedication.trim();
+  if (dedication) context.fillText(dedication, 70, 1510);
+  const byline = `${draft.author.trim() || "佚名"} · ${formatDate()}`;
+  context.fillText(byline, 70, 1580);
+  const voice = VOICES[draft.voice]?.name || VOICES.original.name;
+  context.fillText(voice, 70, 1630);
+
+  if (draft.showQr) {
+    paintCanvasQr(context, creationUrl(), 444, 1540, 86);
+  }
+  return canvas;
+}
+
+async function paintBookmarkBackground(context, template, mood, variantIndex) {
+  if (template === "photo" && bookmarkPhotoDataUrl) {
+    const image = await loadImageElement(bookmarkPhotoDataUrl);
+    context.fillStyle = "#efe8dc";
+    context.fillRect(0, 0, 600, 1800);
+    drawImageCover(context, image, 0, 0, 600, 1800);
+    context.fillStyle = "rgba(12,18,16,.42)";
+    context.fillRect(0, 0, 600, 1800);
+    context.fillStyle = "rgba(255,255,255,.18)";
+    context.fillRect(34, 34, 532, 1732);
+    return;
+  }
+  const gradient = context.createLinearGradient(0, 0, 600, 1800);
+  const palettes = [
+    ["#f5efe4", "#fffdf7", "#d8e4db"],
+    ["#fff2df", "#f7d7b0", "#735347"],
+    ["#eaf1ee", "#d8e6df", "#b9c9c0"],
+  ][variantIndex % 3];
+  const selected = template === "season" ? palettes : [mood.bg1, mood.bg2, mood.bg3];
+  gradient.addColorStop(0, selected[0]);
+  gradient.addColorStop(0.58, selected[1]);
+  gradient.addColorStop(1, selected[2]);
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 600, 1800);
+  context.fillStyle = mood.wash;
+  context.fillRect(38, 38, 524, 1724);
+  context.strokeStyle = mood.line;
+  context.lineWidth = 1;
+  context.strokeRect(52, 52, 496, 1696);
+}
+
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+function drawImageCover(context, image, x, y, width, height) {
+  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = image.naturalWidth * scale;
+  const drawHeight = image.naturalHeight * scale;
+  const drawX = x + (width - drawWidth) / 2;
+  const drawY = y + (height - drawHeight) / 2;
+  context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+}
+
+function bookmarkMood(variantIndex = 0) {
+  const moods = {
+    warm: { bg1: "#f4ece0", bg2: "#fffaf1", bg3: "#decfb8", text: "#3e352b", faint: "rgba(62,53,43,.58)", accent: "#9a6a3d", line: "rgba(97,77,54,.18)", wash: "rgba(255,255,255,.22)", font: '"Songti SC", "STSong", serif', weight: 500 },
+    harbor: { bg1: "#dfe8e9", bg2: "#f6fbfb", bg3: "#a8bac0", text: "#1f3e45", faint: "rgba(31,62,69,.58)", accent: "#35636f", line: "rgba(31,62,69,.18)", wash: "rgba(255,255,255,.2)", font: '"Songti SC", "STSong", serif', weight: 500 },
+    sunset: { bg1: "#f5d7b2", bg2: "#fff4dc", bg3: "#b36b58", text: "#4a2f2a", faint: "rgba(74,47,42,.6)", accent: "#b95736", line: "rgba(100,48,32,.18)", wash: "rgba(255,248,232,.2)", font: '"Songti SC", "STSong", serif', weight: 500 },
+    melancholy: { bg1: "#d9dee8", bg2: "#f5f7fb", bg3: "#9ba7ba", text: "#273246", faint: "rgba(39,50,70,.58)", accent: "#53637f", line: "rgba(39,50,70,.16)", wash: "rgba(255,255,255,.19)", font: '"Songti SC", "STSong", serif', weight: 500 },
+    clear: { bg1: "#edf4f0", bg2: "#ffffff", bg3: "#c7d8d0", text: "#213f36", faint: "rgba(33,63,54,.56)", accent: "#416d61", line: "rgba(33,63,54,.15)", wash: "rgba(255,255,255,.18)", font: '"Songti SC", "STSong", serif', weight: 500 },
+    hand: { bg1: "#f7efe2", bg2: "#fffdfa", bg3: "#dacdb9", text: "#372d25", faint: "rgba(55,45,37,.58)", accent: "#7c5b41", line: "rgba(55,45,37,.17)", wash: "rgba(255,255,255,.18)", font: '"Kaiti SC", "STKaiti", serif', weight: 400 },
+  };
+  const picked = moods[draft.bookmarkFontMood] || moods.warm;
+  if (draft.outputType !== "series") return picked;
+  return [picked, moods.sunset, moods.clear][variantIndex % 3];
+}
+
+function photoBookmarkMood() {
+  return {
+    bg1: "#111816",
+    bg2: "#31433d",
+    bg3: "#101614",
+    text: "#fffaf0",
+    faint: "rgba(255,250,240,.72)",
+    accent: "#fff1c7",
+    line: "rgba(255,255,255,.24)",
+    wash: "rgba(255,255,255,.12)",
+    font: '"Songti SC", "STSong", serif',
+    weight: 500,
+  };
+}
+
+async function canvasToExportItem(canvas, fileName) {
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) throw new Error("PNG generation failed");
+  const url = URL.createObjectURL(blob);
+  return { url, file: new File([blob], fileName, { type: "image/png" }), name: fileName };
+}
+
+function showExportedImages(items) {
+  exportedImageUrls.forEach((url) => URL.revokeObjectURL(url));
+  if (exportedImageUrl) URL.revokeObjectURL(exportedImageUrl);
+  exportedImageUrls = items.map((item) => item.url);
+  exportedImageUrl = items[0]?.url || null;
+  exportedImageFile = items[0]?.file || null;
+  const isSeries = items.length > 1;
+  const isBookmark = draft.outputType !== "poster";
+  elements.exportedImage.hidden = isSeries;
+  elements.exportedImage.classList.toggle("is-bookmark-preview", isBookmark);
+  elements.exportedSeries.hidden = !isSeries;
+  elements.exportedSeries.innerHTML = "";
+  if (items[0]) {
+    elements.exportedImage.src = items[0].url;
+    elements.downloadImage.href = items[0].url;
+    elements.downloadImage.download = items[0].name;
+    elements.downloadImage.textContent = isSeries ? "下载第 1 张 PNG" : "下载 PNG";
+  }
+  if (isSeries) {
+    items.forEach((item, index) => {
+      const card = document.createElement("div");
+      card.className = "series-export-card";
+      card.innerHTML = `<img alt="系列书签 ${index + 1}" src="${item.url}" /><a class="secondary-button" download="${escapeHtml(item.name)}" href="${item.url}">下载第 ${index + 1} 张</a>`;
+      elements.exportedSeries.append(card);
+    });
+  }
+  const canShare =
+    !isSeries &&
+    exportedImageFile &&
+    typeof navigator.share === "function" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [exportedImageFile] });
+  elements.shareImage.hidden = !canShare;
+  elements.imageSizeHint.textContent = isSeries
+    ? "系列书签包含 3 张 600 × 1800 PNG，可逐张下载。"
+    : isBookmark
+      ? "图片尺寸为 600 × 1800，适合制作竖版书签。"
+      : "图片尺寸为 1080 × 1440，适合直接分享。";
+  elements.imageDialog.showModal();
+  document.body.style.overflow = "hidden";
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 function creationUrl() {
@@ -1208,6 +1499,76 @@ elements.authorInput.addEventListener("input", () => {
   saveDraft();
   updateSaveState();
 });
+document.querySelectorAll('input[name="output-type"]').forEach((input) => {
+  input.addEventListener("change", () => {
+    const previous = draft.outputType;
+    draft.outputType = input.value;
+    if (previous === "poster" && draft.outputType !== "poster") draft.showQr = false;
+    if (previous !== "poster" && draft.outputType === "poster") draft.showQr = true;
+    elements.showQr.checked = draft.showQr;
+    updatePreview();
+    saveDraft();
+    updateSaveState();
+  });
+});
+document.querySelectorAll('input[name="bookmark-template"]').forEach((input) => {
+  input.addEventListener("change", () => {
+    draft.bookmarkTemplate = input.value;
+    updatePreview();
+    saveDraft();
+    updateSaveState();
+  });
+});
+elements.bookmarkTitle.addEventListener("input", () => {
+  draft.bookmarkTitle = elements.bookmarkTitle.value.slice(0, 16);
+  updatePreview();
+  saveDraft();
+  updateSaveState();
+});
+elements.bookmarkRecipient.addEventListener("input", () => {
+  draft.bookmarkRecipient = elements.bookmarkRecipient.value.slice(0, 16);
+  updatePreview();
+  saveDraft();
+  updateSaveState();
+});
+elements.bookmarkSeason.addEventListener("input", () => {
+  draft.bookmarkSeason = elements.bookmarkSeason.value.slice(0, 16);
+  updatePreview();
+  saveDraft();
+  updateSaveState();
+});
+elements.bookmarkFontMood.addEventListener("change", () => {
+  draft.bookmarkFontMood = elements.bookmarkFontMood.value;
+  updatePreview();
+  saveDraft();
+  updateSaveState();
+});
+elements.bookmarkDedication.addEventListener("input", () => {
+  draft.bookmarkDedication = elements.bookmarkDedication.value.slice(0, 28);
+  saveDraft();
+  updateSaveState();
+});
+elements.bookmarkPhoto.addEventListener("change", async () => {
+  const file = elements.bookmarkPhoto.files?.[0];
+  if (!file) {
+    bookmarkPhotoDataUrl = null;
+    bookmarkPhotoName = "";
+    return;
+  }
+  try {
+    bookmarkPhotoDataUrl = await readFileAsDataUrl(file);
+    bookmarkPhotoName = file.name;
+    draft.bookmarkTemplate = "photo";
+    const photoInput = document.querySelector('input[name="bookmark-template"][value="photo"]');
+    if (photoInput) photoInput.checked = true;
+    updatePreview();
+    toast(`已选择影像背景：${bookmarkPhotoName}`);
+  } catch {
+    bookmarkPhotoDataUrl = null;
+    bookmarkPhotoName = "";
+    toast("图片读取失败，请换一张照片重试。");
+  }
+});
 elements.showQr.addEventListener("change", () => {
   draft.showQr = elements.showQr.checked;
   saveDraft();
@@ -1216,7 +1577,7 @@ elements.showQr.addEventListener("change", () => {
 document.querySelectorAll('input[name="theme"]').forEach((input) => {
   input.addEventListener("change", () => {
     draft.theme = input.value;
-    elements.poemCard.className = `poem-card theme-${draft.theme}`;
+    updatePreview();
     saveDraft();
     updateSaveState();
   });
