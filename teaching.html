@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#edf2ee" />
+    <meta
+      name="description"
+      content="诗骰教学模式：从《定风波》和《沁园春》的结构入门，逐句完成自己的词。"
+    />
+    <title>教学模式 · 诗骰</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./teaching.css" />
+  </head>
+  <body class="teaching-page">
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="返回诗骰首页">
+        <span class="brand-mark" aria-hidden="true">诗</span>
+        <span>
+          <strong>诗骰</strong>
+          <small>词牌教学模式</small>
+        </span>
+      </a>
+      <nav class="top-actions" aria-label="页面导航">
+        <a class="icon-button" href="./index.html" aria-label="返回创作">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m9 18-6-6 6-6M3 12h18"/>
+          </svg>
+          <span>返回创作</span>
+        </a>
+      </nav>
+    </header>
+
+    <main class="teaching-main">
+      <section class="teaching-hero">
+        <p class="eyebrow">LEARN THE CI FORM</p>
+        <h1>先认识词牌，<br />再写下自己的山河。</h1>
+        <p>
+          选择一个范本，理解句式、换片、韵脚与章法，再逐句完成原创作品。
+          教学只给骨架和提示，不替你写答案。
+        </p>
+      </section>
+
+      <section class="lesson-picker" aria-labelledby="lesson-picker-title">
+        <div class="section-heading">
+          <div>
+            <span class="step-number">01</span>
+            <h2 id="lesson-picker-title">选择词牌</h2>
+          </div>
+          <p>短调适合初次练习，长调适合铺陈宏大主题。</p>
+        </div>
+        <div class="lesson-options" id="lesson-options" role="radiogroup" aria-label="选择教学词牌">
+          <button class="lesson-option is-active" type="button" data-lesson="dingfengbo" role="radio" aria-checked="true">
+            <span class="lesson-length">62 字 · 11 句</span>
+            <strong>定风波</strong>
+            <small>以苏轼“莫听穿林打叶声”为范本</small>
+            <span class="lesson-description">学习如何从眼前处境写到内心选择，以短句制造转折。</span>
+          </button>
+          <button class="lesson-option" type="button" data-lesson="qinyuanchun" role="radio" aria-checked="false">
+            <span class="lesson-length">114 字 · 25 句</span>
+            <strong>沁园春</strong>
+            <small>以毛泽东《沁园春·雪》为章法范本</small>
+            <span class="lesson-description">学习铺陈景象、使用领字与对偶，并在换片后转入议论。</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="lesson-board" aria-labelledby="lesson-title">
+        <div class="lesson-intro">
+          <div>
+            <p class="eyebrow" id="lesson-kicker">SHORT FORM · BEGINNER</p>
+            <h2 id="lesson-title">定风波</h2>
+            <p id="lesson-subtitle"></p>
+          </div>
+          <div class="lesson-progress">
+            <span id="lesson-progress-text">已完成 0 / 11 句</span>
+            <div class="progress-track" aria-hidden="true"><span id="lesson-progress-fill"></span></div>
+          </div>
+        </div>
+
+        <div class="learning-grid">
+          <article class="learning-card">
+            <span>一 · 看结构</span>
+            <h3 id="structure-title"></h3>
+            <p id="structure-copy"></p>
+          </article>
+          <article class="learning-card">
+            <span>二 · 学章法</span>
+            <h3 id="method-title"></h3>
+            <p id="method-copy"></p>
+          </article>
+          <article class="learning-card">
+            <span>三 · 找韵脚</span>
+            <h3 id="rhyme-title"></h3>
+            <p id="rhyme-copy"></p>
+          </article>
+        </div>
+
+        <details class="model-notes">
+          <summary>查看范本拆解与创作提醒</summary>
+          <div id="model-notes-content"></div>
+        </details>
+
+        <div class="section-heading writing-heading">
+          <div>
+            <span class="step-number">02</span>
+            <h2>逐句填词</h2>
+          </div>
+          <p>字数按汉字计算，标点和空格不计；初学阶段暂不强制检查平仄。</p>
+        </div>
+
+        <div class="writing-shell">
+          <label class="work-title-field">
+            <span>你的词题</span>
+            <input id="work-title" type="text" maxlength="16" placeholder="例如：途中遇雨、城市初雪" />
+          </label>
+          <div class="line-editor" id="line-editor"></div>
+          <div class="writing-actions">
+            <button class="secondary-button" id="clear-lesson" type="button">清空本篇</button>
+            <button class="primary-button" id="preview-lesson" type="button">预览我的词</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="teaching-preview" id="teaching-preview" hidden aria-labelledby="preview-title">
+        <p class="eyebrow">YOUR CI</p>
+        <h2 id="preview-title">你的作品</h2>
+        <article class="ci-paper">
+          <h3 id="ci-preview-title"></h3>
+          <div id="ci-preview-body"></div>
+        </article>
+      </section>
+
+      <footer>
+        <p>格律是河岸，不是替你行舟的人。</p>
+        <span>教学草稿仅保存在当前浏览器</span>
+      </footer>
+    </main>
+
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+    <script src="./teaching.js" defer></script>
+  </body>
+</html>

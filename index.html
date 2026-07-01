@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#edf2ee" />
+    <meta
+      name="description"
+      content="诗骰是一款用九颗原创词语骰子创作短诗的网页小游戏。"
+    />
+    <title>诗骰 · 把偶然排成一首诗</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css?v=22" />
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="诗骰首页">
+        <span class="brand-mark" aria-hidden="true">诗</span>
+        <span>
+          <strong>诗骰</strong>
+          <small>把偶然排成一首诗</small>
+        </span>
+      </a>
+      <nav class="top-actions" aria-label="辅助功能">
+        <a class="icon-button" href="./teaching.html" aria-label="教学模式">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/>
+            <path d="M4 5.5v16M8 7h8M8 11h6"/>
+          </svg>
+          <span>教学模式</span>
+        </a>
+        <button class="icon-button" id="open-gallery" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Z"/>
+            <path d="m7 16 3.2-3.5 2.3 2.2 2.8-3.2L18 15"/>
+            <circle cx="9" cy="9" r="1.2"/>
+          </svg>
+          <span>作品集</span>
+          <span class="count-badge" id="saved-count">0</span>
+        </button>
+        <button class="icon-button" id="open-guide" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M9.8 9a2.35 2.35 0 1 1 3.3 2.15c-.7.35-1.1.8-1.1 1.6"/>
+            <path d="M12 16.6h.01"/>
+          </svg>
+          <span>玩法</span>
+        </button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <p class="eyebrow">NINE DICE · FIFTY-FOUR WORDS</p>
+        <h1 id="hero-title">让词语落下，<br />由你决定它们的方向。</h1>
+        <p class="hero-copy">
+          九颗骰子带来九个偶然。锁住心动的词，重新投掷其余，
+          再把它们排列成只属于此刻的诗。
+        </p>
+      </section>
+
+      <section class="workspace" aria-label="诗歌创作区">
+        <div class="section-heading">
+          <div>
+            <span class="step-number">01</span>
+            <h2>掷出词语</h2>
+          </div>
+          <p id="roll-hint">点击下方按钮，让九颗骰子同时落下。</p>
+        </div>
+
+        <div class="voice-picker" aria-labelledby="voice-picker-title">
+          <div class="voice-picker-copy">
+            <span id="voice-picker-title">选择诗意气质</span>
+            <small id="voice-source">自由创作词库 · 主题协同生成</small>
+          </div>
+          <div class="voice-options" id="voice-options" role="radiogroup" aria-label="诗意气质">
+            <button class="voice-option is-active" type="button" data-voice="original" role="radio" aria-checked="true">
+              <strong>自由创作</strong>
+              <span>偶然 · 清澈</span>
+            </button>
+            <button class="voice-option" type="button" data-voice="pessoa" role="radio" aria-checked="false">
+              <strong>佩索阿</strong>
+              <span>自我 · 城市</span>
+            </button>
+            <button class="voice-option" type="button" data-voice="borges" role="radio" aria-checked="false">
+              <strong>博尔赫斯</strong>
+              <span>迷宫 · 时间</span>
+            </button>
+            <button class="voice-option" type="button" data-voice="haizi" role="radio" aria-checked="false">
+              <strong>海子</strong>
+              <span>大地 · 麦田</span>
+            </button>
+            <button class="voice-option" type="button" data-voice="neruda" role="radio" aria-checked="false">
+              <strong>聂鲁达</strong>
+              <span>海洋 · 爱欲</span>
+            </button>
+          </div>
+          <p class="voice-copyright" id="voice-copyright">
+            系统会先选择同一意象场景，再按两行诗的句法提供词语。
+          </p>
+          <a
+            class="voice-source-link"
+            id="voice-source-link"
+            href="https://www.gutenberg.org/ebooks/19978"
+            target="_blank"
+            rel="noreferrer"
+            hidden
+          >
+            查看公版英文原文来源
+          </a>
+        </div>
+
+        <div class="dice-stage" id="dice-stage" aria-live="polite">
+          <div class="stage-empty" id="stage-empty">
+            <div class="empty-orbit" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <p>偶然尚未发生</p>
+          </div>
+        </div>
+
+        <div class="roll-actions">
+          <button class="primary-button" id="roll-button" type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M20 12a8 8 0 1 1-2.35-5.65"/>
+              <path d="M20 4v6h-6"/>
+            </svg>
+            <span>掷出一首诗</span>
+          </button>
+          <p class="lock-tip" id="lock-tip">
+            掷骰后，点击骰子即可锁定喜欢的词。
+          </p>
+        </div>
+
+        <div class="divider" aria-hidden="true"></div>
+
+        <div class="section-heading compose-heading">
+          <div>
+            <span class="step-number">02</span>
+            <h2>排列诗句</h2>
+          </div>
+          <p>拖动词块调整顺序，选中词块后添加标点或换行。</p>
+        </div>
+
+        <div class="compose-shell" id="compose-shell">
+          <div class="discard-panel">
+            <div class="discard-heading">
+              <span>待选词语</span>
+              <small>按你想要的顺序点选；不必使用全部词语</small>
+            </div>
+            <div class="discard-zone" id="discard-zone">
+              <span class="discard-empty">还没有被放下的词</span>
+            </div>
+          </div>
+
+          <div class="creation-guide" id="creation-guide">
+            <div class="creation-progress">
+              <span id="creation-status">等待词语落下</span>
+              <div class="progress-track" aria-hidden="true">
+                <span id="progress-fill"></span>
+              </div>
+            </div>
+            <ol class="creation-steps" aria-label="创作提示">
+              <li data-stage="begin"><span>1</span>选择开篇</li>
+              <li data-stage="turn"><span>2</span>让诗转弯</li>
+              <li data-stage="finish"><span>3</span>完成收束</li>
+            </ol>
+          </div>
+
+          <div
+            class="poem-canvas"
+            id="poem-canvas"
+            aria-label="诗句排列区域"
+            tabindex="0"
+          >
+            <div class="canvas-placeholder" id="canvas-placeholder">
+              <span>这里等待你的第一句话</span>
+              <small>从上方待选词语依次点选，加入后仍可拖动排序</small>
+            </div>
+          </div>
+
+          <div class="compose-toolbar" aria-label="诗句编辑工具">
+            <div class="punctuation-tools" id="punctuation-tools">
+              <button type="button" data-punctuation="，" title="添加逗号">，</button>
+              <button type="button" data-punctuation="。" title="添加句号">。</button>
+              <button type="button" data-punctuation="；" title="添加分号">；</button>
+              <button type="button" data-punctuation="？" title="添加问号">？</button>
+              <button type="button" data-punctuation="！" title="添加感叹号">！</button>
+              <button type="button" data-punctuation="……" title="添加省略号">……</button>
+              <button class="toolbar-text-button" id="add-break" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M19 7v4a4 4 0 0 1-4 4H6"/>
+                  <path d="m9 12-3 3 3 3"/>
+                </svg>
+                换行
+              </button>
+            </div>
+            <div class="history-tools">
+              <button id="reset-order" type="button">打乱词池</button>
+              <button id="clear-poem" type="button">全部放回</button>
+            </div>
+          </div>
+
+          <div class="compose-footer">
+            <p id="word-count">已使用 0 / 9 个词语</p>
+            <button class="secondary-button" id="preview-button" type="button" disabled>
+              预览这首诗
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="m14 7 5 5-5 5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>随机只负责相遇，意义由你完成。</p>
+        <span>诗骰 · 原创实验项目</span>
+      </footer>
+    </main>
+
+    <dialog class="modal preview-modal" id="preview-dialog">
+      <div class="modal-frame">
+        <button class="close-button" type="button" data-close="preview-dialog" aria-label="关闭预览">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m6 6 12 12M18 6 6 18"/>
+          </svg>
+        </button>
+        <div class="modal-copy">
+          <p class="eyebrow">YOUR POEM</p>
+          <h2>这一刻，诗已经发生</h2>
+          <p>选择一种气氛，留下名字，保存或带走它。</p>
+        </div>
+
+        <div class="preview-layout">
+          <article class="poem-card theme-mist" id="poem-card">
+            <div class="card-grain" aria-hidden="true"></div>
+            <div class="card-mark">
+              <span>诗骰</span>
+              <div class="card-meta">
+                <span id="card-author">佚名</span>
+                <time id="card-date"></time>
+              </div>
+            </div>
+            <div class="card-poem" id="card-poem"></div>
+            <small class="card-voice" id="card-voice">自由创作</small>
+          </article>
+
+          <div class="preview-controls">
+            <fieldset>
+              <legend>画面气氛</legend>
+              <div class="theme-options">
+                <label>
+                  <input type="radio" name="theme" value="mist" checked />
+                  <span class="theme-swatch swatch-mist"></span>
+                  晨雾
+                </label>
+                <label>
+                  <input type="radio" name="theme" value="night" />
+                  <span class="theme-swatch swatch-night"></span>
+                  深夜
+                </label>
+                <label>
+                  <input type="radio" name="theme" value="paper" />
+                  <span class="theme-swatch swatch-paper"></span>
+                  纸张
+                </label>
+              </div>
+            </fieldset>
+
+            <label class="author-field">
+              <span>署名（可选）</span>
+              <input id="author-input" type="text" maxlength="12" placeholder="佚名" />
+            </label>
+
+            <label class="poster-option">
+              <span>
+                <strong>海报二维码</strong>
+                <small>显示在图片左下角，扫码进入诗骰继续创作</small>
+              </span>
+              <input id="show-qr" type="checkbox" checked />
+              <i aria-hidden="true"></i>
+            </label>
+
+            <div class="preview-actions">
+              <button class="secondary-button" id="save-button" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M5 4h12l2 2v14H5V4Z"/>
+                  <path d="M8 4v6h8V4M8 20v-6h8v6"/>
+                </svg>
+                <span>保存到我的作品</span>
+              </button>
+              <button class="primary-button" id="export-button" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M12 3v12"/>
+                  <path d="m7 10 5 5 5-5"/>
+                  <path d="M5 20h14"/>
+                </svg>
+                保存图片到设备
+              </button>
+              <p class="save-status" id="save-status" role="status"></p>
+              <button class="new-round-button" id="new-round-button" type="button">
+                放下这一首，开始新一轮
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal image-modal" id="image-dialog">
+      <div class="modal-frame image-modal-frame">
+        <button class="close-button" type="button" data-close="image-dialog" aria-label="关闭图片预览">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m6 6 12 12M18 6 6 18"/>
+          </svg>
+        </button>
+        <div class="modal-copy">
+          <p class="eyebrow">SAVE IMAGE</p>
+          <h2>把这首诗保存到设备</h2>
+          <p>电脑点击下载；手机也可以长按下方图片，选择“存储到照片”。</p>
+        </div>
+        <div class="image-save-layout">
+          <img id="exported-image" alt="诗歌分享图片预览" />
+          <div class="image-save-actions">
+            <a class="primary-button" id="download-image" download>下载 PNG</a>
+            <button class="secondary-button" id="share-image" type="button" hidden>使用系统分享</button>
+            <small>图片尺寸为 1080 × 1440，适合直接分享。</small>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal gallery-modal" id="gallery-dialog">
+      <div class="modal-frame">
+        <button class="close-button" type="button" data-close="gallery-dialog" aria-label="关闭作品集">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m6 6 12 12M18 6 6 18"/>
+          </svg>
+        </button>
+        <div class="modal-copy">
+          <p class="eyebrow">LOCAL COLLECTION</p>
+          <h2>留在这台设备里的诗</h2>
+          <p>作品只保存在当前浏览器，不会上传到任何服务器。</p>
+        </div>
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
+    </dialog>
+
+    <dialog class="modal guide-modal" id="guide-dialog">
+      <div class="modal-frame">
+        <button class="close-button" type="button" data-close="guide-dialog" aria-label="关闭玩法说明">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m6 6 12 12M18 6 6 18"/>
+          </svg>
+        </button>
+        <div class="modal-copy">
+          <p class="eyebrow">HOW TO PLAY</p>
+          <h2>三步，写下一首偶然的诗</h2>
+        </div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-number">01</span>
+            <div class="guide-icon">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <rect x="4" y="4" width="16" height="16" rx="4"/>
+                <circle cx="9" cy="9" r="1"/>
+                <circle cx="15" cy="15" r="1"/>
+                <circle cx="15" cy="9" r="1"/>
+                <circle cx="9" cy="15" r="1"/>
+              </svg>
+            </div>
+            <h3>掷出词语</h3>
+            <p>九颗骰子各带来一个词。点击骰子锁定心动的结果，再重掷其余。</p>
+          </li>
+          <li>
+            <span class="guide-number">02</span>
+            <div class="guide-icon">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M8 7h11M8 12h8M8 17h11"/>
+                <path d="m3.5 7 1.5 1.5L6.5 7"/>
+                <path d="m3.5 12 1.5 1.5L6.5 12"/>
+                <path d="m3.5 17 1.5 1.5L6.5 17"/>
+              </svg>
+            </div>
+            <h3>排列诗句</h3>
+            <p>从词语池按自己的顺序选词，再拖动微调，亲手决定标点、停顿与换行。</p>
+          </li>
+          <li>
+            <span class="guide-number">03</span>
+            <div class="guide-icon">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M5 4h14v16H5z"/>
+                <path d="M8 8h8M8 12h6M8 16h4"/>
+              </svg>
+            </div>
+            <h3>保存此刻</h3>
+            <p>至少使用五个词语即可完成。选择画面主题，保存到本地或导出分享图片。</p>
+          </li>
+        </ol>
+        <div class="rules-note">
+          <strong>创作规则</strong>
+          <span>词语不可修改，也不能额外输入；限制让偶然保持诚实。</span>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+    <script src="./vendor/qrcode.js?v=15" defer></script>
+    <script src="./app.js?v=22" defer></script>
+  </body>
+</html>
