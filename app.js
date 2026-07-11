@@ -3,8 +3,8 @@
 const VOICES = {
   original: {
     name: "自由创作",
-    source: "自由创作词库 · 主题协同生成",
-    notice: "系统会先选择同一意象场景，再按两行诗的句法提供词语。",
+    source: "原创九维词库 · 独立随机生成",
+    notice: "九个词位分别承担时间、主体、环境、动作、意象等功能，结果不预设顺序。",
     motifs: [
       ["黎明时", "我们", "沿着海岸", "拾起", "昨夜的月光", "而", "潮汐", "轻轻改写", "远方的名字"],
       ["黄昏以后", "旅人", "在山谷里", "等待", "第一颗星", "直到", "风", "带着回声", "穿过寂静"],
@@ -69,15 +69,15 @@ const VOICES = {
 };
 
 const DICE_META = [
-  ["time", "开篇"],
+  ["time", "时间"],
   ["subject", "主体"],
-  ["space", "场景"],
+  ["space", "环境"],
   ["action", "动作"],
   ["image", "意象"],
-  ["relation", "转折"],
-  ["state", "第二意象"],
-  ["sense", "变化"],
-  ["change", "收束"],
+  ["relation", "连接"],
+  ["state", "情绪与状态"],
+  ["sense", "修饰与感知"],
+  ["change", "抽象变化"],
 ];
 
 const OUTPUT_TYPES = ["poster", "bookmark", "series"];
@@ -160,9 +160,8 @@ const elements = {
 function makeDefaultDraft() {
   const dice = getDice();
   return {
-    version: 5,
+    version: 6,
     voice: "original",
-    motifIndex: null,
     hasRolled: false,
     diceResults: dice.map((die) => ({
       dieId: die.id,
@@ -191,7 +190,7 @@ function makeDefaultDraft() {
 
 function sanitizeDraft(input) {
   const fallback = makeDefaultDraft();
-  if (!input || ![2, 3, 4, 5].includes(input.version) || !Array.isArray(input.diceResults)) {
+  if (!input || ![2, 3, 4, 5, 6].includes(input.version) || !Array.isArray(input.diceResults)) {
     return fallback;
   }
 
@@ -245,9 +244,8 @@ function sanitizeDraft(input) {
 
   return {
     ...fallback,
-    version: 5,
+    version: 6,
     voice,
-    motifIndex: Number.isInteger(input.motifIndex) ? input.motifIndex : null,
     hasRolled: Boolean(input.hasRolled),
     diceResults,
     items,
@@ -330,11 +328,10 @@ function randomFaceIndex(die) {
   return Math.floor(Math.random() * die.faces.length);
 }
 
-function nextMotifIndex(currentIndex = null) {
-  const motifCount = VOICES[draft.voice]?.motifs.length || 6;
-  if (motifCount <= 1) return 0;
-  let next = randomIndex(motifCount);
-  while (next === currentIndex) next = randomIndex(motifCount);
+function nextFaceIndex(die, currentIndex) {
+  if (die.faces.length <= 1) return 0;
+  let next = randomFaceIndex(die);
+  while (next === currentIndex) next = randomFaceIndex(die);
   return next;
 }
 
@@ -425,7 +422,7 @@ async function rollDice() {
   renderPoem();
 
   const rollingIds = new Set(rollable.map((result) => result.dieId));
-  const motifIndex = nextMotifIndex(draft.motifIndex);
+  const previousFaceIndexes = new Map(rollable.map((result) => [result.dieId, result.faceIndex]));
   const duration = reduceMotion.matches ? 80 : 820;
   const timers = [];
 
@@ -446,9 +443,9 @@ async function rollDice() {
   await new Promise((resolve) => window.setTimeout(resolve, duration));
   timers.forEach(window.clearInterval);
   rollable.forEach((result) => {
-    result.faceIndex = motifIndex;
+    const die = getDie(result.dieId);
+    result.faceIndex = nextFaceIndex(die, previousFaceIndexes.get(result.dieId));
   });
-  draft.motifIndex = motifIndex;
   draft.diceOrder = shuffledDisplayOrder(draft.diceOrder);
 
   isRolling = false;
@@ -483,7 +480,7 @@ function renderPoem() {
 
 function renderCreationProgress(usedCount) {
   let activeStage = "begin";
-  let status = "从词语池选择一个让你心动的开头";
+  let status = "从上方九个词里选择一个让你心动的开头";
   if (!draft.hasRolled) {
     status = "等待词语落下";
   } else if (usedCount >= 7) {
@@ -1396,7 +1393,7 @@ function renderAll() {
     : "掷出九个词";
   elements.rollHint.textContent = draft.hasRolled
     ? "点击任意词语，直接加入下方排列区。"
-    : "系统会协同选择意象与句法，掷出后直接点选喜欢的词。";
+    : "九个文学维度分别投掷，结果不会预设成句。";
   renderVoiceOptions();
   updateSaveState();
 }

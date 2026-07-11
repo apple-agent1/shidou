@@ -10,7 +10,7 @@
     />
     <title>诗骰 · 把偶然排成一首诗</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=26" />
+    <link rel="stylesheet" href="./styles.css?v=27" />
   </head>
   <body>
     <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -57,8 +57,8 @@
         <p class="eyebrow">NINE DICE · FIFTY-FOUR WORDS</p>
         <h1 id="hero-title">让词语落下，<br />由你决定它们的方向。</h1>
         <p class="hero-copy">
-          九颗骰子带来九个偶然。点选心动的词，把它们直接送入诗句，
-          再排列成只属于此刻的诗。
+          九个词位分别带来主体、环境、动作与意象。它们彼此无序，
+          关系、节奏与留白由你重新创造。
         </p>
       </section>
 
@@ -68,13 +68,13 @@
             <span class="step-number">01</span>
             <h2>掷出词语</h2>
           </div>
-          <p id="roll-hint">点击下方按钮，让九颗骰子同时落下。</p>
+          <p id="roll-hint">九个文学维度分别投掷，结果不会预设成句。</p>
         </div>
 
         <div class="voice-picker" aria-labelledby="voice-picker-title">
           <div class="voice-picker-copy">
             <span id="voice-picker-title">选择诗意气质</span>
-            <small id="voice-source">自由创作词库 · 主题协同生成</small>
+            <small id="voice-source">原创九维词库 · 独立随机生成</small>
           </div>
           <div class="voice-options" id="voice-options" role="radiogroup" aria-label="诗意气质">
             <button class="voice-option is-active" type="button" data-voice="original" role="radio" aria-checked="true">
@@ -108,7 +108,7 @@
             </button>
           </div>
           <p class="voice-copyright" id="voice-copyright">
-            系统会先选择同一意象场景，再按两行诗的句法提供词语。
+            九个词位分别承担时间、主体、环境、动作、意象等功能，结果不预设顺序。
           </p>
           <a
             class="voice-source-link"
@@ -164,7 +164,7 @@
           >
             <div class="canvas-placeholder" id="canvas-placeholder">
               <span>这里等待你的第一句话</span>
-              <small>从上方待选词语依次点选，加入后仍可拖动排序</small>
+              <small>从上方九个词中依次点选，加入后仍可拖动排序</small>
             </div>
           </div>
 
@@ -445,7 +445,7 @@
               </svg>
             </div>
             <h3>掷出词语</h3>
-            <p>九颗骰子各带来一个词。点击心动的词，它会直接进入下方排列区。</p>
+            <p>九个文学维度独立随机，各带来一个词。点击心动的词，直接送入排列区。</p>
           </li>
           <li>
             <span class="guide-number">02</span>
@@ -482,6 +482,6 @@
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
 
     <script src="./vendor/qrcode.js?v=15" defer></script>
-    <script src="./app.js?v=26" defer></script>
+    <script src="./app.js?v=27" defer></script>
   </body>
 </html>
