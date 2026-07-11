@@ -10,7 +10,7 @@
     />
     <title>诗骰 · 把偶然排成一首诗</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=27" />
+    <link rel="stylesheet" href="./styles.css?v=28" />
   </head>
   <body>
     <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -71,11 +71,7 @@
           <p id="roll-hint">九个文学维度分别投掷，结果不会预设成句。</p>
         </div>
 
-        <div class="voice-picker" aria-labelledby="voice-picker-title">
-          <div class="voice-picker-copy">
-            <span id="voice-picker-title">选择诗意气质</span>
-            <small id="voice-source">原创九维词库 · 独立随机生成</small>
-          </div>
+        <div class="voice-picker" aria-label="选择诗意气质">
           <div class="voice-options" id="voice-options" role="radiogroup" aria-label="诗意气质">
             <button class="voice-option is-active" type="button" data-voice="original" role="radio" aria-checked="true">
               <strong>自由创作</strong>
@@ -107,19 +103,6 @@
               <span>掷出九个词</span>
             </button>
           </div>
-          <p class="voice-copyright" id="voice-copyright">
-            九个词位分别承担时间、主体、环境、动作、意象等功能，结果不预设顺序。
-          </p>
-          <a
-            class="voice-source-link"
-            id="voice-source-link"
-            href="https://www.gutenberg.org/ebooks/19978"
-            target="_blank"
-            rel="noreferrer"
-            hidden
-          >
-            查看公版英文原文来源
-          </a>
         </div>
 
         <div class="dice-stage" id="dice-stage" aria-live="polite">
@@ -131,31 +114,7 @@
           </div>
         </div>
 
-        <div class="divider" aria-hidden="true"></div>
-
-        <div class="section-heading compose-heading">
-          <div>
-            <span class="step-number">02</span>
-            <h2>排列诗句</h2>
-          </div>
-          <p>从上方点选词语，再拖动调整顺序、添加标点或换行。</p>
-        </div>
-
         <div class="compose-shell" id="compose-shell">
-          <div class="creation-guide" id="creation-guide">
-            <div class="creation-progress">
-              <span id="creation-status">等待词语落下</span>
-              <div class="progress-track" aria-hidden="true">
-                <span id="progress-fill"></span>
-              </div>
-            </div>
-            <ol class="creation-steps" aria-label="创作提示">
-              <li data-stage="begin"><span>1</span>选择开篇</li>
-              <li data-stage="turn"><span>2</span>让诗转弯</li>
-              <li data-stage="finish"><span>3</span>完成收束</li>
-            </ol>
-          </div>
-
           <div
             class="poem-canvas"
             id="poem-canvas"
@@ -482,6 +441,6 @@
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
 
     <script src="./vendor/qrcode.js?v=15" defer></script>
-    <script src="./app.js?v=27" defer></script>
+    <script src="./app.js?v=28" defer></script>
   </body>
 </html>

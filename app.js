@@ -3,8 +3,6 @@
 const VOICES = {
   original: {
     name: "自由创作",
-    source: "原创九维词库 · 独立随机生成",
-    notice: "九个词位分别承担时间、主体、环境、动作、意象等功能，结果不预设顺序。",
     motifs: [
       ["黎明时", "我们", "沿着海岸", "拾起", "昨夜的月光", "而", "潮汐", "轻轻改写", "远方的名字"],
       ["黄昏以后", "旅人", "在山谷里", "等待", "第一颗星", "直到", "风", "带着回声", "穿过寂静"],
@@ -16,8 +14,6 @@ const VOICES = {
   },
   pessoa: {
     name: "佩索阿式灵感",
-    source: "部分意象转译自公版英文诗集《35 Sonnets》",
-    notice: "佩索阿部分英文原作已进入公版；这里采用重新编排的短语转译，不复制现成中文译本。",
     motifs: [
       ["在词语之外", "另一个我", "隔着镜子", "寻找", "无法传达的灵魂", "而", "我们的梦", "彼此梦见", "更远的自己"],
       ["在未来的眼睛里", "抄写员", "翻开墨页", "辨认", "已经消失的我", "而", "时间", "比肉身更久", "保存一个名字"],
@@ -29,8 +25,6 @@ const VOICES = {
   },
   borges: {
     name: "博尔赫斯式灵感",
-    source: "原创致意词库 · 不含博尔赫斯原文摘录",
-    notice: "博尔赫斯作品仍受版权保护，本模式只使用原创的迷宫、时间与镜像意象。",
     motifs: [
       ["永恒的一刻", "读者", "在无边图书馆", "翻开", "尚未写成的书", "于是", "每条岔路", "同时通往", "同一个清晨"],
       ["最后一夜", "盲者", "面对铜镜", "辨认", "另一个人的脸", "而", "镜中时间", "缓慢复制", "遗忘的姓名"],
@@ -42,8 +36,6 @@ const VOICES = {
   },
   haizi: {
     name: "海子式灵感",
-    source: "原创致意词库 · 不含海子原文摘录",
-    notice: "海子作品仍受版权保护，本模式只使用原创的大地、麦田与太阳意象。",
     motifs: [
       ["太阳升起时", "孩子", "赤脚穿过", "唤醒", "沉睡的麦田", "于是", "每一粒种子", "开始拥有", "金色的名字"],
       ["黑夜尽头", "兄弟", "在山岗上", "点燃", "一束孤独的火", "直到", "远方", "长出明亮的", "村庄和河流"],
@@ -55,8 +47,6 @@ const VOICES = {
   },
   neruda: {
     name: "聂鲁达式灵感",
-    source: "原创致意词库 · 不含聂鲁达原文或译文摘录",
-    notice: "聂鲁达作品及常见中文译本仍受保护，本模式只使用原创的海洋、果实与爱意意象。",
     motifs: [
       ["潮汐升起时", "爱人", "沿着海边", "拾起", "一枚潮湿贝壳", "而", "整个夜晚", "在你的掌心", "变成低声海浪"],
       ["今夜", "我", "隔着星空", "呼唤", "你遥远的名字", "直到", "黑色的船", "载着月光", "穿过所有距离"],
@@ -149,12 +139,6 @@ const elements = {
   toastRegion: document.querySelector("#toast-region"),
   voiceOptions: document.querySelector("#voice-options"),
   cardVoice: document.querySelector("#card-voice"),
-  voiceSource: document.querySelector("#voice-source"),
-  voiceCopyright: document.querySelector("#voice-copyright"),
-  voiceSourceLink: document.querySelector("#voice-source-link"),
-  creationStatus: document.querySelector("#creation-status"),
-  progressFill: document.querySelector("#progress-fill"),
-  creationSteps: document.querySelectorAll(".creation-steps li"),
 };
 
 function makeDefaultDraft() {
@@ -475,32 +459,6 @@ function renderPoem() {
   elements.previewButton.disabled = usedCount < 5;
   elements.resetOrder.disabled = !draft.hasRolled;
   elements.clearPoem.disabled = usedCount === 0;
-  renderCreationProgress(usedCount);
-}
-
-function renderCreationProgress(usedCount) {
-  let activeStage = "begin";
-  let status = "从上方九个词里选择一个让你心动的开头";
-  if (!draft.hasRolled) {
-    status = "等待词语落下";
-  } else if (usedCount >= 7) {
-    activeStage = "finish";
-    status = "诗已经有了方向，可以预览或继续打磨";
-  } else if (usedCount >= 4) {
-    activeStage = "turn";
-    status = "加入转折、标点或换行，让诗产生呼吸";
-  } else if (usedCount > 0) {
-    status = "继续选择意象与动作，建立第一句话";
-  }
-
-  elements.creationStatus.textContent = status;
-  elements.progressFill.style.width = `${Math.min(100, (usedCount / 7) * 100)}%`;
-  const stages = ["begin", "turn", "finish"];
-  const activeIndex = stages.indexOf(activeStage);
-  elements.creationSteps.forEach((step, index) => {
-    step.classList.toggle("is-active", index === activeIndex && draft.hasRolled);
-    step.classList.toggle("is-complete", draft.hasRolled && index < activeIndex);
-  });
 }
 
 function createTokenElement(item) {
@@ -1404,10 +1362,6 @@ function renderVoiceOptions() {
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-checked", String(active));
   });
-  const voice = VOICES[draft.voice] || VOICES.original;
-  elements.voiceSource.textContent = voice.source;
-  elements.voiceCopyright.textContent = voice.notice;
-  elements.voiceSourceLink.hidden = draft.voice !== "pessoa";
 }
 
 function selectVoice(voice) {
