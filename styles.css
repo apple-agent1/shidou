@@ -322,6 +322,12 @@ main {
   text-underline-offset: 3px;
 }
 
+.voice-roll-actions {
+  grid-column: 2;
+  margin-top: 0;
+  justify-content: flex-start;
+}
+
 .voice-option {
   min-height: 58px;
   padding: 8px 10px;
@@ -1653,6 +1659,10 @@ footer span {
   }
 
   .voice-source-link {
+    grid-column: 1;
+  }
+
+  .voice-roll-actions {
     grid-column: 1;
   }
 

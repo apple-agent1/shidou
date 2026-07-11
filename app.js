@@ -412,23 +412,17 @@ function addDieToPoem(dieId) {
 
 async function rollDice() {
   if (isRolling) return;
-  const rollable = draft.hasRolled
-    ? draft.diceResults.filter((result) => draft.discarded.includes(result.dieId))
-    : draft.diceResults;
-  if (draft.hasRolled && rollable.length === 0) {
-    toast("九个词语都已加入诗句，可先放回一个再重新掷出。");
-    return;
-  }
+  const rollable = draft.diceResults;
 
   isRolling = true;
   elements.rollButton.disabled = true;
   elements.rollButton.querySelector("span").textContent = "词语正在落下";
-
-  if (!draft.hasRolled) {
-    draft.hasRolled = true;
-    draft.items = [];
-    draft.discarded = shuffledDieIds();
-  }
+  draft.hasRolled = true;
+  draft.items = [];
+  draft.discarded = shuffledDieIds();
+  draft.selectedItemId = null;
+  draft.savedPoemId = null;
+  renderPoem();
 
   const rollingIds = new Set(rollable.map((result) => result.dieId));
   const motifIndex = nextMotifIndex(draft.motifIndex);
@@ -459,8 +453,8 @@ async function rollDice() {
 
   isRolling = false;
   elements.rollButton.disabled = false;
-  elements.rollButton.querySelector("span").textContent = "重掷未选词语";
-  elements.rollHint.textContent = "点击上方词语直接加入诗句；再次投掷只更新尚未选择的词。";
+  elements.rollButton.querySelector("span").textContent = "重新投掷";
+  elements.rollHint.textContent = "点击任意词语，直接加入下方排列区。";
   saveDraft();
   renderAll();
 }
@@ -1398,10 +1392,10 @@ function renderAll() {
   renderPoem();
   updateSavedCount();
   elements.rollButton.querySelector("span").textContent = draft.hasRolled
-    ? "重掷未选词语"
-    : "掷出一首诗";
+    ? "重新投掷"
+    : "掷出九个词";
   elements.rollHint.textContent = draft.hasRolled
-    ? "点击上方词语直接加入诗句；再次投掷只更新尚未选择的词。"
+    ? "点击任意词语，直接加入下方排列区。"
     : "系统会协同选择意象与句法，掷出后直接点选喜欢的词。";
   renderVoiceOptions();
   updateSaveState();
