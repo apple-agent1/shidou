@@ -10,7 +10,7 @@
     />
     <title>诗骰 · 把偶然排成一首诗</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=24" />
+    <link rel="stylesheet" href="./styles.css?v=25" />
   </head>
   <body>
     <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -57,8 +57,8 @@
         <p class="eyebrow">NINE DICE · FIFTY-FOUR WORDS</p>
         <h1 id="hero-title">让词语落下，<br />由你决定它们的方向。</h1>
         <p class="hero-copy">
-          九颗骰子带来九个偶然。锁住心动的词，重新投掷其余，
-          再把它们排列成只属于此刻的诗。
+          九颗骰子带来九个偶然。点选心动的词，把它们直接送入诗句，
+          再排列成只属于此刻的诗。
         </p>
       </section>
 
@@ -130,9 +130,6 @@
             </svg>
             <span>掷出一首诗</span>
           </button>
-          <p class="lock-tip" id="lock-tip">
-            掷骰后，点击骰子即可锁定喜欢的词。
-          </p>
         </div>
 
         <div class="divider" aria-hidden="true"></div>
@@ -142,20 +139,10 @@
             <span class="step-number">02</span>
             <h2>排列诗句</h2>
           </div>
-          <p>拖动词块调整顺序，选中词块后添加标点或换行。</p>
+          <p>从上方点选词语，再拖动调整顺序、添加标点或换行。</p>
         </div>
 
         <div class="compose-shell" id="compose-shell">
-          <div class="discard-panel">
-            <div class="discard-heading">
-              <span>待选词语</span>
-              <small>按你想要的顺序点选；不必使用全部词语</small>
-            </div>
-            <div class="discard-zone" id="discard-zone">
-              <span class="discard-empty">还没有被放下的词</span>
-            </div>
-          </div>
-
           <div class="creation-guide" id="creation-guide">
             <div class="creation-progress">
               <span id="creation-status">等待词语落下</span>
@@ -199,7 +186,7 @@
               </button>
             </div>
             <div class="history-tools">
-              <button id="reset-order" type="button">打乱词池</button>
+              <button id="reset-order" type="button">打乱上方词语</button>
               <button id="clear-poem" type="button">全部放回</button>
             </div>
           </div>
@@ -459,7 +446,7 @@
               </svg>
             </div>
             <h3>掷出词语</h3>
-            <p>九颗骰子各带来一个词。点击骰子锁定心动的结果，再重掷其余。</p>
+            <p>九颗骰子各带来一个词。点击心动的词，它会直接进入下方排列区。</p>
           </li>
           <li>
             <span class="guide-number">02</span>
@@ -472,7 +459,7 @@
               </svg>
             </div>
             <h3>排列诗句</h3>
-            <p>从词语池按自己的顺序选词，再拖动微调，亲手决定标点、停顿与换行。</p>
+            <p>按自己的顺序点选上方词语，再拖动微调，亲手决定标点、停顿与换行。</p>
           </li>
           <li>
             <span class="guide-number">03</span>
@@ -496,6 +483,6 @@
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
 
     <script src="./vendor/qrcode.js?v=15" defer></script>
-    <script src="./app.js?v=24" defer></script>
+    <script src="./app.js?v=25" defer></script>
   </body>
 </html>

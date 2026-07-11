@@ -473,12 +473,16 @@ main {
   transform: translateY(-3px);
 }
 
-.die.is-locked {
+.die.is-used {
   border-color: rgba(184, 148, 83, 0.8);
+  color: rgba(47, 81, 69, 0.52);
   box-shadow:
     inset 4px 4px 11px rgba(255, 255, 255, 0.9),
     0 0 0 3px rgba(184, 148, 83, 0.14),
     0 13px 25px rgba(47, 81, 69, 0.13);
+  cursor: default;
+  opacity: 0.62;
+  transform: none;
 }
 
 .die.is-rolling {
@@ -498,35 +502,6 @@ main {
   word-break: normal;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-}
-
-.die-lock {
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  border-radius: 999px;
-  opacity: 0;
-  background: rgba(255, 255, 255, 0.7);
-  transition: opacity 180ms ease;
-}
-
-.die:hover .die-lock,
-.die.is-locked .die-lock,
-.die:focus-visible .die-lock {
-  opacity: 1;
-}
-
-.die-lock svg {
-  width: 13px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
 }
 
 .roll-actions {
@@ -588,12 +563,6 @@ main {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
-}
-
-.lock-tip {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .divider {
@@ -890,71 +859,6 @@ main {
 
 .poem-token.drag-source {
   opacity: 0.25;
-}
-
-.discard-panel {
-  padding: 22px 28px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(238, 243, 239, 0.62);
-}
-
-.discard-heading {
-  margin-bottom: 13px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.discard-heading span {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.discard-heading small {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.discard-zone {
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.discard-word {
-  min-height: 46px;
-  padding: 0 13px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: 1px dashed rgba(70, 98, 87, 0.26);
-  border-radius: 10px;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.45);
-  font-family: var(--serif);
-  transition:
-    color 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease,
-    transform 100ms ease;
-}
-
-.discard-word:hover {
-  color: var(--sage-dark);
-  border-style: solid;
-  background: var(--white);
-}
-
-.discard-word:active {
-  transform: translateY(1px);
-}
-
-.discard-empty {
-  color: var(--muted);
-  font-size: 12px;
-  opacity: 0.62;
 }
 
 .compose-footer {
@@ -1767,10 +1671,6 @@ footer span {
     gap: 10px;
   }
 
-  .lock-tip {
-    text-align: center;
-  }
-
   .preview-layout {
     grid-template-columns: 1fr;
   }
@@ -1924,16 +1824,6 @@ footer span {
 
   .word-token {
     font-size: 16px;
-  }
-
-  .discard-panel {
-    padding: 20px;
-  }
-
-  .discard-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0;
   }
 
   .compose-footer {

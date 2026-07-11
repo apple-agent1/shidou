@@ -106,10 +106,8 @@ const elements = {
   stageEmpty: document.querySelector("#stage-empty"),
   rollButton: document.querySelector("#roll-button"),
   rollHint: document.querySelector("#roll-hint"),
-  lockTip: document.querySelector("#lock-tip"),
   poemCanvas: document.querySelector("#poem-canvas"),
   canvasPlaceholder: document.querySelector("#canvas-placeholder"),
-  discardZone: document.querySelector("#discard-zone"),
   punctuationTools: document.querySelector("#punctuation-tools"),
   addBreak: document.querySelector("#add-break"),
   resetOrder: document.querySelector("#reset-order"),
@@ -373,8 +371,6 @@ function toast(message) {
 
 function icon(name) {
   const paths = {
-    lock: '<rect x="6" y="10" width="12" height="9" rx="2"/><path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10"/>',
-    unlock: '<rect x="6" y="10" width="12" height="9" rx="2"/><path d="M9 10V7.5a3.5 3.5 0 0 1 6.4-2"/>',
     close: '<path d="m6 6 12 12M18 6 6 18"/>',
   };
   return `<svg aria-hidden="true" viewBox="0 0 24 24">${paths[name] || ""}</svg>`;
@@ -391,40 +387,36 @@ function renderDice(rollingIds = new Set()) {
   elements.stageEmpty.hidden = true;
   draft.diceOrder.forEach((dieId) => {
     const die = getDie(dieId);
-    const result = getResult(die.id);
+    const isUsed = !draft.discarded.includes(die.id);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `die${result.locked ? " is-locked" : ""}${rollingIds.has(die.id) ? " is-rolling" : ""}`;
+    button.className = `die${isUsed ? " is-used" : ""}${rollingIds.has(die.id) ? " is-rolling" : ""}`;
     button.dataset.dieId = die.id;
-    button.setAttribute(
-      "aria-label",
-      `词语骰子：${getWord(die.id)}，${result.locked ? "已锁定" : "未锁定"}`
-    );
-    button.innerHTML = `
-      <span class="die-lock">${icon(result.locked ? "lock" : "unlock")}</span>
-      <span class="die-word">${escapeHtml(getWord(die.id))}</span>
-    `;
-    button.addEventListener("click", () => toggleLock(die.id));
+    button.disabled = isUsed || isRolling;
+    button.setAttribute("aria-label", `${getWord(die.id)}，${isUsed ? "已加入排列区" : "加入排列区"}`);
+    button.innerHTML = `<span class="die-word">${escapeHtml(getWord(die.id))}</span>`;
+    button.addEventListener("click", () => addDieToPoem(die.id));
     elements.diceStage.append(button);
   });
 }
 
-function toggleLock(dieId) {
+function addDieToPoem(dieId) {
   if (!draft.hasRolled || isRolling) return;
-  const result = getResult(dieId);
-  result.locked = !result.locked;
+  if (!draft.discarded.includes(dieId)) return;
+  draft.discarded = draft.discarded.filter((id) => id !== dieId);
+  draft.items.push({ id: uid("word"), type: "word", dieId });
   saveDraft();
   renderDice();
-  elements.lockTip.textContent = result.locked
-    ? `已锁定“${getWord(dieId)}”，下次投掷会保留它。`
-    : `已解锁“${getWord(dieId)}”。`;
+  renderPoem();
 }
 
 async function rollDice() {
   if (isRolling) return;
-  const rollable = draft.diceResults.filter((result) => !result.locked);
+  const rollable = draft.hasRolled
+    ? draft.diceResults.filter((result) => draft.discarded.includes(result.dieId))
+    : draft.diceResults;
   if (draft.hasRolled && rollable.length === 0) {
-    toast("九颗骰子都已锁定，请先解锁至少一颗。");
+    toast("九个词语都已加入诗句，可先放回一个再重新掷出。");
     return;
   }
 
@@ -467,9 +459,8 @@ async function rollDice() {
 
   isRolling = false;
   elements.rollButton.disabled = false;
-  elements.rollButton.querySelector("span").textContent = "重掷未锁定的词";
-  elements.rollHint.textContent = "词语来自同一意象场景；锁定喜欢的部分，再重掷其余。";
-  elements.lockTip.textContent = "点击任意骰子，可以锁定或解锁它。";
+  elements.rollButton.querySelector("span").textContent = "重掷未选词语";
+  elements.rollHint.textContent = "点击上方词语直接加入诗句；再次投掷只更新尚未选择的词。";
   saveDraft();
   renderAll();
 }
@@ -485,25 +476,6 @@ function renderPoem() {
     elements.canvasPlaceholder.hidden = true;
     draft.items.forEach((item) => {
       elements.poemCanvas.append(createTokenElement(item));
-    });
-  }
-
-  elements.discardZone.innerHTML = "";
-  if (!draft.discarded.length) {
-    const empty = document.createElement("span");
-    empty.className = "discard-empty";
-    empty.textContent = "还没有被放下的词";
-    elements.discardZone.append(empty);
-  } else {
-    draft.discarded.forEach((dieId) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "discard-word";
-      button.innerHTML = `<span>${escapeHtml(getWord(dieId))}</span>`;
-      button.title = "加入诗句末尾";
-      button.setAttribute("aria-label", `${getWord(dieId)}，加入诗句`);
-      button.addEventListener("click", () => restoreDiscarded(dieId));
-      elements.discardZone.append(button);
     });
   }
 
@@ -686,13 +658,7 @@ function removeItem(itemId) {
   }
   if (draft.selectedItemId === itemId) draft.selectedItemId = null;
   saveDraft();
-  renderPoem();
-}
-
-function restoreDiscarded(dieId) {
-  draft.discarded = draft.discarded.filter((id) => id !== dieId);
-  draft.items.push({ id: uid("word"), type: "word", dieId });
-  saveDraft();
+  renderDice();
   renderPoem();
 }
 
@@ -707,10 +673,10 @@ function insertAfterSelection(item) {
 
 function resetOrder() {
   if (!draft.hasRolled) return;
-  draft.discarded = shuffleArray(draft.discarded);
+  draft.diceOrder = shuffleArray(draft.diceOrder);
   saveDraft();
-  renderPoem();
-  toast("词语池已经重新打乱。");
+  renderDice();
+  toast("上方词语已经重新打乱。");
 }
 
 function shuffleArray(items) {
@@ -737,6 +703,7 @@ function clearPoem() {
   draft.items = [];
   draft.selectedItemId = null;
   saveDraft();
+  renderDice();
   renderPoem();
 }
 
@@ -1431,11 +1398,11 @@ function renderAll() {
   renderPoem();
   updateSavedCount();
   elements.rollButton.querySelector("span").textContent = draft.hasRolled
-    ? "重掷未锁定的词"
+    ? "重掷未选词语"
     : "掷出一首诗";
   elements.rollHint.textContent = draft.hasRolled
-    ? "词语来自同一意象场景；锁定喜欢的部分，再重掷其余。"
-    : "系统会协同选择意象与句法，先为你生成一首可编辑的两行诗。";
+    ? "点击上方词语直接加入诗句；再次投掷只更新尚未选择的词。"
+    : "系统会协同选择意象与句法，掷出后直接点选喜欢的词。";
   renderVoiceOptions();
   updateSaveState();
 }
